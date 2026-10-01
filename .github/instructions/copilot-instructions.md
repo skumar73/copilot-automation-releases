@@ -229,7 +229,7 @@ Template:
 - YYYY-MM-DD (@author): <rule>
 
 Examples:
-- 2026-05-21 (@jasontiedt): Until ACR firewall is reconfigured, do not add
+- 2026-05-21 (@senthkumar): Until ACR firewall is reconfigured, do not add
   `firewallRules` parameters that reference public IP ranges.
 - 2026-06-01 (@platform): When AVM `>= 0.13.0`, switch `sku` from string to
   the new object type and remove the `vaultSku` alias permanently.
