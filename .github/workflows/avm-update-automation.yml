@@ -29,8 +29,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       current: ${{ steps.check.outputs.current }}
-      latest:  ${{ steps.check.outputs.latest }}
-      has_update: ${{ steps.check.outputs.has_update }}
+      latest:  ${{ steps.override.outputs.latest || steps.check.outputs.latest }}
+      has_update: ${{ steps.override.outputs.has_update || steps.check.outputs.has_update }}
     steps:
       - uses: actions/checkout@v4
 
@@ -43,11 +43,17 @@ jobs:
           ./scripts/check-avm-version.sh
 
       - name: Apply forced version override
-        if: ${{ github.event.inputs.force_version != '' }}
-        run: |
-          echo "latest=${{ github.event.inputs.force_version }}" >> "$GITHUB_OUTPUT"
-          echo "has_update=true" >> "$GITHUB_OUTPUT"
         id: override
+        if: ${{ github.event.inputs.force_version != '' }}
+        env:
+          FORCE_VERSION: ${{ github.event.inputs.force_version }}
+        run: |
+          if [[ ! "$FORCE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::force_version must be semver (x.y.z), got: $FORCE_VERSION"
+            exit 1
+          fi
+          echo "latest=$FORCE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "has_update=true" >> "$GITHUB_OUTPUT"
 
   diff:
     name: Diff old vs. new
@@ -92,14 +98,15 @@ jobs:
           name: avm-diff
           path: ./.artifacts/avm-diff
 
-      - name: Skip if PR already exists
+      - name: Skip if PR or issue already exists
         id: existing
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NEW: ${{ needs.detect.outputs.latest }}
         run: |
-          existing=$(gh pr list --state open --search "avm key-vault $NEW in:title" --json number --jq 'length')
-          echo "count=$existing" >> "$GITHUB_OUTPUT"
+          prs=$(gh pr list --state open --search "avm key-vault $NEW in:title" --json number --jq 'length')
+          issues=$(gh issue list --state open --search "bump key-vault to $NEW in:title" --json number --jq 'length')
+          echo "count=$((prs + issues))" >> "$GITHUB_OUTPUT"
 
       - name: Ensure issue labels exist
         if: steps.existing.outputs.count == '0'
@@ -132,11 +139,12 @@ jobs:
           - \`modules/keyvault.bicep\` — update the \`br/public:avm/res/key-vault/vault:<version>\` reference and reconcile parameter mappings against the diff below
           - \`parameters/keyvault.example.bicepparam\` — only if the example uses a parameter that was renamed/removed
           - \`README.md\` — regenerate the parameters/outputs table
+          - \`CHANGELOG.md\` — add an entry for this bump listing added, removed and changed parameters
 
           ### Constraints (do NOT violate)
           See \`.github/copilot-instructions.md\`. Highlights:
           - **Never** weaken security defaults (\`enablePurgeProtection\`, \`enableRbacAuthorization\`, \`publicNetworkAccess: Disabled\`, \`networkAcls.defaultAction: Deny\`, \`softDeleteRetentionInDays: 90\`).
-          - **Never** silently remove a wrapper parameter — deprecate with a comment first.
+          - DEPRECATED:\` whose removal condition is met by the new AVM verison MUST be removed in this PR and recorded in \`CHANGELOG.md\`, except parameters listed as PROTECTED in Section 11 of the instructions (currently \`vaultSku\`).
           - Maintain backward compatibility for consumers of the wrapper.
           - All edits must compile (\`az bicep build\`) and lint cleanly.
 

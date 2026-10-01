@@ -194,30 +194,33 @@ You'll see something like:
 
 ## Step 5b — The planted drift (2 min)
 
-For this demo the wrapper has been deliberately seeded with three pieces of
-**stale code** that the agent is expected to clean up during the bump. This
-is what turns "version-pin update" into a real reconciliation task.
+For this demo the wrapper has been deliberately seeded with three legacy
+parameters. Two are **stale code** the agent is expected to remove during the
+bump. The third (`vaultSku`) is **protected** and must be kept. This is what
+turns "version-pin update" into a real reconciliation task, and it shows the
+agent respecting an explicit "do not touch" rule.
 
 **Open:** [`modules/keyvault.bicep`](modules/keyvault.bicep) and point at
 each of these:
 
 | # | Location | What's stale | What Copilot must do |
 |---|---|---|---|
-| 1 | `param vaultSku` (deprecated alias for `skuName`) | Old AVM accepted both names; current AVM only accepts `sku`. Wrapper still exposes both via the `effectiveSku` coalescing var. | Remove the `vaultSku` param **and** the `effectiveSku` var; pass `skuName` directly. Note the removal in `CHANGELOG.md`. |
+| 1 | `param vaultSku` (deprecated alias for `skuName`) | `copilot-instructions.md` marks it protected, so existing consumers never break |
 | 2 | `param enableSoftDelete bool = true` | AVM 0.9+ enforces soft-delete unconditionally — this knob is a no-op. | Remove the param. Note the removal in `CHANGELOG.md`. |
 | 3 | `param accessPolicies array = []` (with `@maxLength(0)`) | RBAC-only auth is a Hard Constraint; this param can never be used. | Remove the param. Note the removal in `CHANGELOG.md`. |
 
 **Say:**
-> All three are tagged with `// DEPRECATED:` comments so the agent can find
-> them grep-style. Step 5 of `.github/copilot-instructions.md` explicitly
-> tells Copilot to remove deprecated wrapper params whose stated removal
-> condition is met by the new AVM version. After the bump, the wrapper
-> should be ~25 lines shorter and the README parameters table should drop
-> three rows.
+> Two are tagged `// DEPRECATED:` so the agent can find them grep-style, and
+> one is tagged `// PROTECTED:`. Section 5 of `.github/copilot-instructions.md`
+> tells Copilot to remove deprecated wrapper params whose removal condition is
+> met by the new AVM version, except anything Section 11 lists as protected.
+> After the bump, the wrapper should be roughly 11 lines shorter, the README
+> parameters table should drop two rows, and `vaultSku` should still be there.
 
 > Validation is what enforces this: `pr-validate.yml` runs `az bicep build`
-> and `az bicep lint` against the post-bump wrapper. If Copilot leaves a
-> dangling `effectiveSku` reference or forgets to update `README.md`,
+> and `az bicep lint` against the post-bump wrapper. If Copilot removes
+> `vaultSku` or `effectiveSku` by mistake, leaves a stale parameter, or
+> forgets to update `README.md`,
 > reviewers see a ❌ on the PR before they even open the diff.
 
 ---

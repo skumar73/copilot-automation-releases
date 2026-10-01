@@ -85,7 +85,26 @@ jobs:
           OLD: ${{ steps.pinned.outputs.current }}
           NEW: ${{ steps.latest.outputs.latest }}
         run: |
+          # Only ever bump forward
+          newest=$(printf '%s\n%s\n' "$OLD" "$NEW" | sort -V | tail -n1)
+          if [[ "$newest" != "$NEW" ]]; then
+            echo "Pinned $OLD is newer than registry latest $NEW - nothing to do."
+            exit 0
+          fi
+
           BRANCH="bot/${MODULE_REPO}-${NEW}"
+
+          # Skip if a PR or branch for this version already exists
+          existing_pr=$(gh pr list --state open --head "$BRANCH" --json number --jq 'length')
+          if [[ "$existing_pr" != "0" ]] || git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            echo "Bump branch/PR for $NEW already exists - skipping."
+            exit 0
+          fi
+
+          # Make sure the labels exist, otherwise 'gh pr create --label' fails
+          gh label create "module-update" --color "1D76DB" --description "Shared module version bump" --force >/dev/null || true
+          gh label create "automation"    --color "5319E7" --description "Opened by an automated workflow" --force >/dev/null || true
+
           git config user.name  "module-update-bot"
           git config user.email "module-update-bot@users.noreply.github.com"
           git checkout -b "$BRANCH"

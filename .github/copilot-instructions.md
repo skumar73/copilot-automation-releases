@@ -109,7 +109,9 @@ ticked.
       exposed and unchanged in name.
 - [ ] `// DEPRECATED:` markers added for any parameter that will be removed
       in a future release. Existing markers whose removal condition is met
-      by the new AVM version are removed in this PR.
+      by the new AVM version are removed in this PR (parameter, any coalescing
+      `var`, README row, and a CHANGELOG entry), EXCEPT parameters listed as
+      PROTECTED in Section 11, which are never removed.
 
 <!-- Add module-specific "must include" rules here.
 Examples:
@@ -229,12 +231,13 @@ Template:
 - YYYY-MM-DD (@author): <rule>
 
 Examples:
-- 2026-05-21 (@senthkumar): Until ACR firewall is reconfigured, do not add
+- 2026-05-21 (@skumar73): Until ACR firewall is reconfigured, do not add
   `firewallRules` parameters that reference public IP ranges.
 - 2026-06-01 (@platform): When AVM `>= 0.13.0`, switch `sku` from string to
   the new object type and remove the `vaultSku` alias permanently.
 -->
 
-Do not remove parameters, cannot be changed: 
-  vaultSku 
+- 2026-10-01 (@skumar73): `vaultSku` is a PROTECTED wrapper parameter. Never
+  remove or rename it, even if its `// DEPRECATED:` removal condition is met.
+  Keep the `effectiveSku` coalescing var that forwards it to `skuName`.
   

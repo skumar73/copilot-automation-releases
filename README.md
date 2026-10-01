@@ -74,6 +74,9 @@ module kv 'br:<your-acr>/keyvault-shared:<tag>' = {
 | `diagnosticSettings` | array | no | `[]` | Diagnostic settings (overrides default) |
 | `tags` | object | no | `{}` | Resource tags |
 | `logAnalyticsWorkspaceResourceId` | string | no | `''` | Default diagnostic target |
+| `vaultSku` | string | no | `''` | Legacy alias for `skuName` (protected, retained) |
+| `enableSoftDelete` | bool | no | `true` | Deprecated no-op; soft delete is always on |
+| `accessPolicies` | array | no | `[]` | Deprecated; access policies are disallowed and must stay empty |
 
 ## Outputs
 

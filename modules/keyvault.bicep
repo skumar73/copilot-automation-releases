@@ -34,8 +34,9 @@ param location string
 @allowed([ 'standard', 'premium' ])
 param skuName string = 'standard'
 
-// DEPRECATED: legacy alias kept from the pre-AVM module surface. Newer AVM
-// versions only accept `sku`/`skuName`. Coalesced below; remove on next bump.
+// PROTECTED: legacy alias for `skuName`, kept for backward compatibility with
+// existing consumers. Do NOT remove (see copilot-instructions.md, Section 11).
+// Coalesced into `effectiveSku` below.
 @description('Deprecated. Legacy alias for skuName. Do not use in new templates.')
 @allowed([ '', 'standard', 'premium' ])
 param vaultSku string = ''
@@ -108,8 +109,7 @@ var defaultDiagnostics = empty(logAnalyticsWorkspaceResourceId) ? [] : [
 
 var effectiveDiagnostics = empty(diagnosticSettings) ? defaultDiagnostics : diagnosticSettings
 
-// Coalesce deprecated `vaultSku` into `skuName`. Once `vaultSku` is removed
-// (next AVM bump), this var collapses back to `skuName`.
+// Coalesce the protected legacy `vaultSku` into `skuName`. 
 var effectiveSku = empty(vaultSku) ? skuName : vaultSku
 
 // ---------------------------------------------------------------------------
