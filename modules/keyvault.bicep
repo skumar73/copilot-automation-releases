@@ -42,18 +42,8 @@ param skuName string = 'standard'
 param vaultSku string = ''
 
 @description('Optional. Enable RBAC authorization (org standard). Access policies are disallowed.')
+@allowed([ true ])
 param enableRbacAuthorization bool = true
-
-// DEPRECATED: AVM 0.9+ enforces soft-delete unconditionally; this knob is a
-// no-op and should be removed when bumping to a current AVM version.
-@description('Deprecated. Soft delete is always-on in current AVM. Retained for backward compatibility.')
-param enableSoftDelete bool = true
-
-// DEPRECATED: org policy mandates RBAC-only auth. accessPolicies must stay
-// empty. Retained as a wrapper parameter only to surface a clear error when
-// callers attempt to set it; should be dropped on the next AVM bump.
-@description('Deprecated. Access policies are disallowed by org policy. Must remain empty.')
-param accessPolicies array = []
 
 @description('Optional. Soft-delete retention in days. Org minimum is 90.')
 @minValue(90)
@@ -61,17 +51,18 @@ param accessPolicies array = []
 param softDeleteRetentionInDays int = 90
 
 @description('Optional. Purge protection. Required by org policy — must remain true.')
+@allowed([ true ])
 param enablePurgeProtection bool = true
 
 @description('Optional. Allow Azure services (Deploy, Disk Encryption, ARM) to bypass network rules.')
 param networkAclsBypass string = 'AzureServices'
 
 @description('Optional. Default network action. Org standard is Deny.')
-@allowed([ 'Allow', 'Deny' ])
+@allowed([ 'Deny' ])
 param networkAclsDefaultAction string = 'Deny'
 
 @description('Optional. Public network access. Org standard is Disabled.')
-@allowed([ 'Enabled', 'Disabled' ])
+@allowed([ 'Disabled' ])
 param publicNetworkAccess string = 'Disabled'
 
 // ---------------------------------------------------------------------------
@@ -116,7 +107,7 @@ var effectiveSku = empty(vaultSku) ? skuName : vaultSku
 // AVM module call
 // ---------------------------------------------------------------------------
 
-module vault 'br/public:avm/res/key-vault/vault:0.10.0' = {
+module vault 'br/public:avm/res/key-vault/vault:0.14.2' = {
   name: 'kv-${uniqueString(resourceGroup().id, name)}'
   params: {
     name: name
