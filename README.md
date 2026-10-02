@@ -63,20 +63,18 @@ module kv 'br:<your-acr>/keyvault-shared:<tag>' = {
 | `name` | string | yes | — | Key Vault name (3-24 chars) |
 | `location` | string | yes | — | Azure region |
 | `skuName` | string | no | `standard` | `standard` or `premium` |
-| `enableRbacAuthorization` | bool | no | `true` | RBAC-only auth (locked) |
+| `enableRbacAuthorization` | bool | no | `true` | RBAC-only auth (locked to `true`) |
 | `softDeleteRetentionInDays` | int | no | `90` | Soft delete retention (locked at 90) |
-| `enablePurgeProtection` | bool | no | `true` | Purge protection (locked) |
+| `enablePurgeProtection` | bool | no | `true` | Purge protection (locked to `true`) |
 | `networkAclsBypass` | string | no | `AzureServices` | Network ACL bypass |
-| `networkAclsDefaultAction` | string | no | `Deny` | Default network action |
-| `publicNetworkAccess` | string | no | `Disabled` | Public network access |
+| `networkAclsDefaultAction` | string | no | `Deny` | Default network action (locked to `Deny`) |
+| `publicNetworkAccess` | string | no | `Disabled` | Public network access (locked to `Disabled`) |
 | `roleAssignments` | array | no | `[]` | RBAC role assignments |
 | `privateEndpoints` | array | no | `[]` | Private endpoints |
 | `diagnosticSettings` | array | no | `[]` | Diagnostic settings (overrides default) |
 | `tags` | object | no | `{}` | Resource tags |
 | `logAnalyticsWorkspaceResourceId` | string | no | `''` | Default diagnostic target |
 | `vaultSku` | string | no | `''` | Legacy alias for `skuName` (protected, retained) |
-| `enableSoftDelete` | bool | no | `true` | Deprecated no-op; soft delete is always on |
-| `accessPolicies` | array | no | `[]` | Deprecated; access policies are disallowed and must stay empty |
 
 ## Outputs
 
