@@ -160,9 +160,9 @@ jobs:
           URL=$(gh issue create \
             --title "chore(avm): bump key-vault to $NEW" \
             --body "$BODY" \
-            --label "avm-update,automation" \
-            --assignee "copilot")
+            --label "avm-update,automation")
           echo "url=$URL" >> "$GITHUB_OUTPUT"
+          gh issue edit "$URL" --add-assignee "@copilot"
 
       - name: Notify Teams
         if: steps.existing.outputs.count == '0' && env.TEAMS_WEBHOOK_URL != ''
